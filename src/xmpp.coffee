@@ -129,7 +129,7 @@ class XmppBot extends Adapter
       # or zero values
       el = new ltx.Element('presence', to: "#{room.jid}/#{@robot.name}")
       x = el.c('x', xmlns: 'http://jabber.org/protocol/muc')
-      x.c('history', seconds: 1 )
+      x.c('history', maxchars: 0 )
 
       if (room.password)
         x.c('password').t(room.password)
@@ -193,8 +193,10 @@ class XmppBot extends Adapter
       # Everything before the / is the room name in groupchat JID
       [room, user] = from.split '/'
 
-      # ignore our own messages in rooms or messaged without user part
-      return if user is undefined or user == "" or user == @robot.name
+      # messages can come from "us" as we're sharing someones account, sadly
+      # we should only respond to direct messages to our alias, otherwise
+      # rooms can get flooded and the bots will trigger each other
+      return if message.indexOf "@#{robot.alias}" != 0
 
       # Convert the room JID to private JID if we have one
       privateChatJID = @roomToPrivateJID[from]
